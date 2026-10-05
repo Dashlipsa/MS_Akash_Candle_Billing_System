@@ -18,7 +18,7 @@ input,select{min-height:44px;padding:8px 12px;border:2px solid var(--bd);border-
 input:focus,select:focus{outline:none;border-color:var(--acc2);box-shadow:0 0 0 4px var(--soft)}
 .f{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}.f label{display:flex;flex-direction:column;gap:4px;font-size:11px;font-weight:800;color:var(--mut);text-transform:uppercase;letter-spacing:.8px}
 .w{overflow-x:auto}table{border-collapse:separate;border-spacing:0;width:100%}th,td{border-bottom:1px solid var(--bd);padding:8px;text-align:left}th{background:var(--soft);font-weight:800;font-size:12px;text-transform:uppercase;letter-spacing:.8px;color:var(--acc)}th:first-child{border-radius:12px 0 0 12px}th:last-child{border-radius:0 12px 12px 0}td.r{text-align:right;font-weight:700}
-#bt td:nth-child(2){min-width:330px}#bt input[type=number]{width:84px}#bt td:nth-child(2) select{margin-right:6px}#bt input[type=number]{width:96px}.row{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+#bt input.sl{width:96px;text-align:center;font-weight:800;background:var(--soft);border-color:var(--acc2)}#bt td:nth-child(2){min-width:330px}#bt input[type=number]{width:84px}#bt td:nth-child(2) select{margin-right:6px}#bt input[type=number]{width:96px}.row{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
 .tot{text-align:right;line-height:1.9;color:var(--mut)}.tot big{font:900 30px Georgia,serif;color:var(--acc)}
 dialog{max-width:96vw;width:640px;border:0;border-radius:10px;padding:0;background:#fff;color:#000}
 .sheet{font:12px serif;color:var(--blue);background:#fff;padding:14px;border:2px solid var(--blue);width:100%}
@@ -87,9 +87,9 @@ function dash(){const n=c=>P.filter(p=>p.c==c).length;$("#cards").innerHTML=[["�
 /* billing */
 let rows=[],editId=null;
 const nextNo=()=>{let m=0;B.forEach(b=>{const x=parseInt(String(b.no).replace(/\D/g,""));if(x>m)m=x});return S.prefix+String(m+1).padStart(4,"0")};
-function newBill(){editId=null;rows=[];for(let i=0;i<5;i++)rows.push({cat:"",lab:"",ct:"",pc:"",pk:"",rate:"",name:""});$("#bd").value=new Date().toISOString().slice(0,10);$("#bn").value=$("#ba").value="";$("#bno").value=nextNo();$("#disc").value=$("#gst").value=0;$("#mode").textContent="New Bill";drawRows();calc()}
+function newBill(){editId=null;rows=[];for(let i=0;i<5;i++)rows.push({sl:"",auto:true,cat:"",lab:"",ct:"",pc:"",pk:"",rate:"",name:""});$("#bd").value=new Date().toISOString().slice(0,10);$("#bn").value=$("#ba").value="";$("#bno").value=nextNo();$("#disc").value=$("#gst").value=0;$("#mode").textContent="New Bill";drawRows();calc()}
 function opts(c){return P.filter(p=>!c||p.c==c).map(p=>`<option value="${esc(lab(p))}">${esc(p.c.split(" ")[0])} ${p.p.toFixed(2)}</option>`).join("")}
-function drawRows(){$("#bt tbody").innerHTML=rows.map((r,i)=>`<tr><td>${String(i+1).padStart(2,"0")}</td><td><select onchange="rc(${i},this.value)"><option value="">Select Category</option>${CATS.map(c=>`<option ${r.cat==c?"selected":""}>${c}</option>`).join("")}</select>
+function drawRows(){rows.forEach((r,i)=>{if(r.auto)r.sl=String(i+1).padStart(2,"0")});$("#bt tbody").innerHTML=rows.map((r,i)=>`<tr><td><input class="sl" value="${esc(r.sl)}" placeholder="Sl No" aria-label="Serial number" oninput="rows[${i}].sl=this.value;rows[${i}].auto=false"></td><td><select onchange="rc(${i},this.value)"><option value="">Select Category</option>${CATS.map(c=>`<option ${r.cat==c?"selected":""}>${c}</option>`).join("")}</select>
 <input list="dl${i}" placeholder="Search / select product" value="${esc(r.lab)}" oninput="rp(${i},this.value)"><datalist id="dl${i}">${opts(r.cat)}</datalist></td>
 <td><input type="number" min="0" step="any" inputmode="numeric" placeholder="0" value="${r.ct}" oninput="rows[${i}].ct=this.value;ra(${i})"></td>
 <td><input type="number" min="0" step="any" inputmode="numeric" placeholder="0" value="${r.pc}" oninput="rows[${i}].pc=this.value;ra(${i})"></td>
@@ -100,16 +100,16 @@ function rc(i,v){rows[i].cat=v;$("#dl"+i).innerHTML=opts(v)}
 function rp(i,v){const r=rows[i];r.lab=v;const p=P.find(p=>lab(p)==v);if(p){r.name=p.n;r.rate=p.p;$("#rt"+i).value=p.p}else{r.name=v;if(v&&r.rate==="" &&+S.defp){r.rate=S.defp;$("#rt"+i).value=S.defp}}ra(i)}
 const tp=r=>r2((+r.ct||0)*(+r.pc||0)+(+r.pk||0)),amt=r=>r2(tp(r)*(+r.rate||0));
 function ra(i,q){$("#tp"+i).textContent=tp(rows[i])||"";$("#am"+i).textContent=amt(rows[i])?fm(amt(rows[i])):"";if(!q)calc()}
-function addRow(){rows.push({cat:"",lab:"",ct:"",pc:"",pk:"",rate:"",name:""});drawRows()}
+function addRow(){rows.push({sl:"",auto:true,cat:"",lab:"",ct:"",pc:"",pk:"",rate:"",name:""});drawRows()}
 function delRow(i){if(rows.length>1){rows.splice(i,1);drawRows()}}
 function remRow(){if(rows.length>1){rows.pop();drawRows()}}
-function clearBill(){if(confirm("Clear all items?")){rows=rows.map(()=>({cat:"",lab:"",ct:"",pc:"",pk:"",rate:"",name:""}));drawRows()}}
+function clearBill(){if(confirm("Clear all items?")){rows=rows.map(()=>({sl:"",auto:true,cat:"",lab:"",ct:"",pc:"",pk:"",rate:"",name:""}));drawRows()}}
 function calc(){const sub=r2(rows.reduce((s,r)=>s+amt(r),0)),d=r2(sub*(+$("#disc").value||0)/100),g=r2((sub-d)*(+$("#gst").value||0)/100),t=r2(sub-d+g);
 $("#tot").innerHTML=`Subtotal: ${fm(sub)}<br>Discount: −${fm(d)}<br>GST: ${fm(g)}<br>GRAND TOTAL: <big>${fm(t)}</big><br><i>${inWords(t)}</i>`;return{sub,d,g,t}}
 ["disc","gst"].forEach(i=>$("#"+i).addEventListener("input",calc));
 function cur(){const c=calc();return{id:editId,no:$("#bno").value.trim(),date:$("#bd").value,name:$("#bn").value.trim(),addr:$("#ba").value.trim(),disc:+$("#disc").value||0,gst:+$("#gst").value||0,sub:c.sub,total:c.t,
-items:rows.filter(r=>r.name&&tp(r)>0).map(r=>({cat:r.cat,lab:r.lab,name:r.name,ct:+r.ct||0,pc:+r.pc||0,loose:+r.pk||0,pk:tp(r),rate:+r.rate||0,amt:amt(r)}))}}
-function saveBill(){const b=cur();if(!b.items.length)return alert("Add at least one item.");if(!b.no)return alert("Enter a bill number.");
+items:rows.filter(r=>r.name&&tp(r)>0).map(r=>({sl:String(r.sl).trim(),cat:r.cat,lab:r.lab,name:r.name,ct:+r.ct||0,pc:+r.pc||0,loose:+r.pk||0,pk:tp(r),rate:+r.rate||0,amt:amt(r)}))}}
+function saveBill(){const b=cur();if(!b.items.length)return alert("Add at least one item.");if(!chkSl(b))return;if(!b.no)return alert("Enter a bill number.");
 if(B.some(x=>x.no==b.no&&x.id!=b.id))return alert("Bill number already exists.");
 if(b.id){B=B.map(x=>x.id==b.id?b:x)}else{b.id=Date.now();B.push(b);editId=b.id}sb();$("#mode").textContent="Editing "+b.no;alert("Bill "+b.no+" saved.")}
 
@@ -136,22 +136,23 @@ row(["SL NO.","SIZE / PRODUCT","WEIGHT","PRICE"],1);P.filter(p=>p.c==c).forEach(
 let vb=null;
 function renderHist(){const q=$("#hs").value.toLowerCase();$("#ht").innerHTML="<tr><th>Bill No.</th><th>Date</th><th>Customer</th><th>Total</th><th>Actions</th></tr>"+[...B].reverse().filter(b=>(b.no+b.name).toLowerCase().includes(q)).map(b=>`<tr><td>${esc(b.no)}</td><td>${dmy(b.date)}</td><td>${esc(b.name)}</td><td class="r">${fm(b.total)}</td><td><div class="row" style="margin:0"><button onclick="viewBill(${b.id})">👁️ VIEW</button><button onclick="editBill(${b.id})">✏️ EDIT</button><button onclick="pdfBill(B.find(x=>x.id==${b.id}))">DOWNLOAD PDF</button><button class="d" onclick="delBill(${b.id})">🗑️ DELETE</button></div></td></tr>`).join("")}
 function viewBill(id){vb=B.find(b=>b.id==id);$("#dv").innerHTML=sheet(vb);$("#dlg").showModal()}
-function editBill(id){const b=B.find(x=>x.id==id);editId=id;go("bill");rows=b.items.map(i=>({cat:i.cat||"",lab:i.lab||i.name,name:pn(i),ct:i.ct||"",pc:i.pc||"",pk:i.loose!==undefined?i.loose:i.pk,rate:i.rate}));while(rows.length<5)rows.push({cat:"",lab:"",ct:"",pc:"",pk:"",rate:"",name:""});
+function editBill(id){const b=B.find(x=>x.id==id);editId=id;go("bill");rows=b.items.map(i=>({sl:i.sl===undefined?"":i.sl,auto:i.sl===undefined,cat:i.cat||"",lab:i.lab||i.name,name:pn(i),ct:i.ct||"",pc:i.pc||"",pk:i.loose!==undefined?i.loose:i.pk,rate:i.rate}));while(rows.length<5)rows.push({sl:"",auto:true,cat:"",lab:"",ct:"",pc:"",pk:"",rate:"",name:""});
 $("#bd").value=b.date;$("#bn").value=b.name;$("#ba").value=b.addr;$("#bno").value=b.no;$("#disc").value=b.disc;$("#gst").value=b.gst;$("#mode").textContent="Editing "+b.no;drawRows()}
 function delBill(id){if(confirm("Delete this bill?")){B=B.filter(b=>b.id!=id);sb();renderHist()}}
 
 /* paper-style bill (screen/print) */
-function sheet(b){let r="";for(let i=0;i<Math.max(20,b.items.length);i++){const it=b.items[i];r+=`<tr><td>${String(i+1).padStart(2,"0")}</td><td>${it?esc(dn(it)):"&nbsp;"}</td><td style="text-align:right">${it?it.pk:""}</td><td style="text-align:right">${it?it.rate.toFixed(2):""}</td><td style="text-align:right">${it?it.amt.toFixed(2):""}</td></tr>`}
+function sheet(b){let r="";for(let i=0;i<Math.max(20,b.items.length);i++){const it=b.items[i];r+=`<tr><td>${esc(it&&it.sl?it.sl:String(i+1).padStart(2,"0"))}</td><td>${it?esc(dn(it)):"&nbsp;"}</td><td style="text-align:right">${it?it.pk:""}</td><td style="text-align:right">${it?it.rate.toFixed(2):""}</td><td style="text-align:right">${it?it.amt.toFixed(2):""}</td></tr>`}
 return`<div class="sheet"><div style="text-align:center"><b style="background:var(--blue);color:#fff;padding:0 6px;font-size:10px">ESTIMATE</b></div><h2>${esc(S.name)}</h2><p><b>${esc(S.addr)}</b></p><p><b>${esc(S.phone)}</b></p>
 <div style="display:flex;gap:10px"><div style="flex:1"><div class="l">Date: ${dmy(b.date)}</div><div class="l">Name: ${esc(b.name)}</div><div class="l">Address: ${esc(b.addr)}</div></div><div style="width:30%" class="l">No.: ${esc(b.no)}</div></div>
 <table style="margin-top:6px;width:100%"><tr><th>Sl No</th><th>PARTICULARS</th><th>PACKET</th><th>RATE</th><th>AMOUNT</th></tr>${r}
 <tr><td colspan="4" style="text-align:right"><b>GRAND TOTAL</b></td><td style="text-align:right"><b>${b.total.toFixed(2)}</b></td></tr></table>
 <p style="text-align:left;margin-top:8px">Rs. <u>${esc(inWords(b.total))}</u> only.</p><div style="display:flex;justify-content:space-between;margin-top:8px"><i><b>${esc(S.foot)}</b></i><b>For ${esc(S.name.toUpperCase())}</b></div><p style="text-align:left"><i><b>Customer's Signature</b></i></p></div>`}
-function printBill(b){if(!b.items.length)return alert("Add items first.");$("#pa").innerHTML=sheet(b);print()}
+function chkSl(b){const i=b.items.findIndex(x=>x.sl!==undefined&&!String(x.sl).trim());if(i>=0){alert("Serial number is empty for item "+(i+1)+" ("+pn(b.items[i])+"). Please enter a serial number.");return false}return true}
+function printBill(b){if(!b.items.length)return alert("Add items first.");if(!chkSl(b))return;$("#pa").innerHTML=sheet(b);print()}
 
 /* PDF (selectable text, A4 portrait) */
-function pdfBill(b){if(!b||!b.items.length)return alert("Add items first.");const d=new jspdf.jsPDF({unit:"mm",format:"a4"}),bl=[30,74,140],N=Math.max(1,Math.ceil(b.items.length/20));
-const X=[14,26,122,144,166,196],y0=73,rh=8,yE=y0+rh*21;
+function pdfBill(b){if(!b||!b.items.length)return alert("Add items first.");if(!chkSl(b))return;const d=new jspdf.jsPDF({unit:"mm",format:"a4"}),bl=[30,74,140],N=Math.max(1,Math.ceil(b.items.length/20));
+const X=[14,30,122,144,166,196],y0=73,rh=8,yE=y0+rh*21;
 for(let pg=0;pg<N;pg++){if(pg)d.addPage();d.setDrawColor(...bl);d.setTextColor(...bl);d.setLineWidth(.4);d.setLineDashPattern([],0);
 d.roundedRect(10,10,190,277,2,2);d.setFillColor(...bl);d.rect(92,14,26,5,"F");d.setTextColor(255);d.setFont("helvetica","bold");d.setFontSize(8);d.text("ESTIMATE",105,17.7,{align:"center"});
 d.setTextColor(...bl);d.setFontSize(24);d.text(S.name.toUpperCase(),105,29,{align:"center"});d.setFontSize(10);d.text(S.addr,105,36,{align:"center"});d.text(S.phone,105,42,{align:"center"});
@@ -161,8 +162,8 @@ const fl=(t,v,x,y,x2)=>{d.text(t,x,y);d.text(v||"",x+d.getTextWidth(t)+1.5,y-.5)
 fl("Date:",dmy(b.date),14,52,100);fl("No.:",b.no,130,52,196);fl("Name:",b.name,14,60,196);fl("Address:",b.addr,14,68,196);d.setLineDashPattern([],0);
 d.rect(14,y0,182,rh);d.setFontSize(9);["Sl No","PARTICULARS","PACKET","RATE","AMOUNT"].forEach((t,i)=>d.text(t,(X[i]+X[i+1])/2,y0+5.4,{align:"center"}));
 d.rect(14,y0,182,yE-y0);X.slice(1,5).forEach(x=>d.line(x,y0,x,yE));for(let i=0;i<=20;i++)d.line(14,y0+rh*(i+1),196,y0+rh*(i+1));
-for(let i=0;i<20;i++){const y=y0+rh*(i+1)+5.4,k=pg*20+i,it=b.items[k];d.setFont("helvetica","normal");d.setFontSize(10);d.text(String(k+1).padStart(2,"0"),20,y,{align:"center"});
-if(it){const nm=dn(it);let fs=10;d.setFontSize(fs);while(d.getTextWidth(nm)>92&&fs>5){fs-=.5;d.setFontSize(fs)}d.text(nm,X[1]+2,y);d.setFontSize(10);
+for(let i=0;i<20;i++){const y=y0+rh*(i+1)+5.4,k=pg*20+i,it=b.items[k];d.setFont("helvetica","normal");d.setFontSize(10);{const sl=it&&it.sl?String(it.sl):String(k+1).padStart(2,"0");let sf=10;d.setFontSize(sf);while(d.getTextWidth(sl)>14&&sf>5){sf-=.5;d.setFontSize(sf)}d.text(sl,22,y,{align:"center"});d.setFontSize(10)}
+if(it){const nm=dn(it);let fs=10;d.setFontSize(fs);while(d.getTextWidth(nm)>88&&fs>5){fs-=.5;d.setFontSize(fs)}d.text(nm,X[1]+2,y);d.setFontSize(10);
 d.text(String(it.pk),X[3]-2,y,{align:"right"});d.text(it.rate.toFixed(2),X[4]-2,y,{align:"right"});d.text(it.amt.toFixed(2),X[5]-2,y,{align:"right"})}}
 if(pg<N-1){d.setFont("helvetica","italic");d.setFontSize(9);d.text("Continued on next page...",196,yE+7,{align:"right"});continue}
 d.setFont("helvetica","bold");d.setFontSize(10);const yT=yE;d.rect(14,yT,182,10);d.line(X[4],yT,X[4],yT+10);d.text("GRAND TOTAL",X[4]-3,yT+6.5,{align:"right"});d.setFontSize(11);d.text(b.total.toFixed(2),X[5]-2,yT+6.8,{align:"right"});
